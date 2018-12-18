@@ -7,9 +7,9 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - mongo
+      - mongodb
 
-  mongo:
+  mongodb:
     container_name: database_mogo
     image: mongo
     volumes:

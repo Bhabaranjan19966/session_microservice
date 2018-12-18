@@ -1,36 +1,37 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT||8080;
+const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
-const db;
-const couner=0;
+var db;
+var counter=0;
 
-MongoClient.connect('mongo://27017',(err,client)=>{
-    if(err){console.log(err);}
-     else{
-       db=client.connect('test-db');
+MongoClient.connect('mongodb://mongodb:27017/',(err,client)=>{
+    if(err){console.log("-----------------------------",err);}
+    
+       db = client.db('test-db');
        console.log('connected to data base');
-    }     
+       app.listen(port,()=>{
+        console.log("app is running on port :" , port);
+        });
 })
 
 
-app.get('/getdata', (req,res) => {
-    res.send("data is being received");
-    res.redirect('/data')
+app.get('/getdata/:batchid', (req,res) => {
+    console.log(req.params.batchid);
+    res.json({"data":3});
 })
 
-app.post("/data", (req , res) => {
-    db.collection('quotes').save({coun: counter},(err, result) => {
+app.post('/create-session', (req , res) => {
+    console.log('request is being received-------------');
+    db.collection('quotes').save({batch:req.params.batch-id, coun: counter},(err, result) => {
             if(err){
                 console.log(err);
             }
-            else{
                 counter++;
-                res.send('saved to data base');
-            }
+                res.send('/getdata');
+            
     })
 })
 
-app.listen(port,()=>{
-console.log("app is running on port :" , port);
-});
+
