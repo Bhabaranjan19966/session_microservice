@@ -116,7 +116,7 @@ app.post('/create-session', (req, res) => {
                     }
 
                     addUserSession.next(req.body);
-                    res.send('data successfully inserted to the database');
+                    res.json({"value":'data successfully inserted to the database'});
                 })
             } else {
 
@@ -153,7 +153,7 @@ app.post('/create-session', (req, res) => {
                     db.collection('quotes').update({ "identifier": batchid }, result);
                     addUserSession.next(req.body);
                     console.log("db updated");
-                    res.send("updated successfully");
+                    res.json({"data":"updated successfully"});
                 }
 
             }
