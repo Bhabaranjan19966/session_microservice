@@ -256,7 +256,7 @@ app.post("/user-sessions" , (req,res) => {
         if(err){
             console.log('someting went wrong');
         }else{
-            res.send(JSON.stringify(result));
+            res.json(result);
         }
 
     })
@@ -271,7 +271,7 @@ app.post('/getsessions', (req, res) => {
         if(err){
             console.log('someting went wrong')
         }else{
-            res.send(JSON.stringify(result));
+            res.json(result);
         }
     })
     
