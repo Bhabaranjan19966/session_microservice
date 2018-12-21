@@ -94,17 +94,6 @@ MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
     });
 })
 
-app.get('/getdata/:batchid', (req, res) => {
-    let arr = [];
-    console.log(req.params.batchid);
-
-    db.collection('quotes').findOne({ "identifier": batchid }, (err, result) => {
-        console.log(result)
-    });
-    res.json("data received");
-})
-
-
 
 app.post('/create-session', (req, res) => {
     let batchid = String(req.body.identifier);
@@ -238,7 +227,6 @@ app.post('/update-session', (req, res) => {
 })
 
 
-
 app.delete('/delete-session', (req,res) => {
     let sessionid = String(req.body.sessionDetails.sessionId);
     
@@ -255,6 +243,30 @@ app.delete('/delete-session', (req,res) => {
     })    
 })
 
-app.get("/user-sessions" , (req,res ) => {
+app.post("/user-sessions" , (req,res) => {
+    let userid= String(req.body.userId);
+    
+    db.collection('user').findOne({'user':userid}, (err,result) => {
+        if(err){
+            console.log('someting went wrong');
+        }else{
+            res.send(JSON.stringify(result));
+        }
 
+    })
+
+})
+
+
+app.post('/getsessions', (req, res) => {
+    let batchid = String(req.body.batchId);
+    
+    db.collection('quotes').findOne({'identifier':batchid} , (err, result) => {
+        if(err){
+            console.log('someting went wrong')
+        }else{
+            res.send(JSON.stringify(result));
+        }
+    })
+    
 })
