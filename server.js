@@ -120,15 +120,15 @@ app.post('/create-session', (req, res) => {
                 })
             } else {
 
-                const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartTime);
-                const newSessionEndTime = new Date(req.body.sessionDetails.sessionEndTime);
+                const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
+                const newSessionEndTime = new Date(req.body.sessionDetails.sessionStartDate);
                 console.log(newSessionStartTime, newSessionEndTime);
                 let sessionID = UUID();
                 let val = false;
                 result.sessions.map(session => {
                     console.log("inside map");
-                    let eSessionStartTime = new Date(session.sessionDetails.sessionStartTime);
-                    let eSessionEndTime = new Date(session.sessionDetails.sessionEndTime);
+                    let eSessionStartTime = new Date(session.sessionDetails.sessionStartDate);
+                    let eSessionEndTime = new Date(session.sessionDetails.sessionStartDate);
                     let eSessionId = session.sessionDetails.sessionId;
                     if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                         val = true;
@@ -189,14 +189,14 @@ app.post('/update-session', (req, res) => {
                     updateUserSession.next(req.body);
                     res.send('sent data');
                 } else {
-                    const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartTime);
-                    const newSessionEndTime = new Date(req.body.sessionDetails.sessionEndTime);
+                    const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
+                    const newSessionEndTime = new Date(req.body.sessionDetails.sessionStartDate);
                     console.log(newSessionStartTime, newSessionEndTime);
                     let val = false;
                     result.sessions.map(session => {
                         console.log("inside map");
-                        let eSessionStartTime = new Date(session.sessionDetails.sessionStartTime);
-                        let eSessionEndTime = new Date(session.sessionDetails.sessionEndTime);
+                        let eSessionStartTime = new Date(session.sessionDetails.sessionStartDate);
+                        let eSessionEndTime = new Date(session.sessionDetails.sessionStartDate);
                         // let eSessionId = session.sessionDetails.sessionId;
                         if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                             val = true;
