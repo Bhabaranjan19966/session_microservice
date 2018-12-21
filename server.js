@@ -233,7 +233,7 @@ app.post('/update-session', (req, res) => {
 })
 
 
-app.delete('/delete-session', (req,res) => {
+app.post('/delete-session', (req,res) => {
     let sessionid = String(req.body.sessionDetails.sessionId);
     
     var promise = new Promise( (resolve,reject) => {
