@@ -12,6 +12,13 @@ const addUserSession = new rxjs.Subject();
 const updateUserSession = new rxjs.Subject();
 const deleteUserSession = new rxjs.Subject();
 
+
+app.all('/', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    next();
+   });
+
 addUserSession.subscribe(
     (userData)=>{
         let userid = String(userData.sessionDetails.createdBy);
@@ -63,7 +70,7 @@ updateUserSession.subscribe(
         })
     },
     err=>{
-
+        
     },
     complete=>{
         
@@ -86,7 +93,6 @@ app.use(bodyParser.json());
 
 MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
     if (err) { console.log("-----------------------------", err); }
-
     db = client.db('test-db');
     console.log('connected to data base');
     app.listen(port, () => {
