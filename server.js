@@ -13,9 +13,9 @@ const updateUserSession = new rxjs.Subject();
 const deleteUserSession = new rxjs.Subject();
 
 
-app.all('/', function(req, res, next) {
+app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
    });
 
