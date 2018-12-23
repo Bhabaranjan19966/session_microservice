@@ -134,16 +134,16 @@ app.post('/create-session', (req, res) => {
                     if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                         val = true;
                         console.log("sending data");
-                        res.send("cannot create session as you have id");
+                        res.json({"message":"cannot create session as you already have a session"});
                     } else if (!val && newSessionStartTime >= eSessionStartTime && newSessionStartTime <= eSessionEndTime) {
                         val = true;
                         console.log("sending data");
-                        res.send("cannot create session as you have id");
+                        res.json({"message":"cannot create session as you already have a session"});
 
                     } else if (!val && newSessionStartTime <= eSessionStartTime && newSessionEndTime >= eSessionEndTime) {
                         val = true;
                         console.log("sending data");
-                        res.send("cannot create session as you have id");
+                        res.json({"message":"cannot create session as you already have a session"});
 
                     }
 
@@ -188,7 +188,7 @@ app.post('/update-session', (req, res) => {
                     db.collection('quotes').update({ "identifier": batchid }, result);
                     console.log("db updated");
                     updateUserSession.next(req.body);
-                    res.send('sent data');
+                    res.json({'data':'sent data'});
                 } else {
                     const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
                     const newSessionEndTime = new Date(req.body.sessionDetails.sessionStartDate);
@@ -202,16 +202,16 @@ app.post('/update-session', (req, res) => {
                         if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                             val = true;
                             console.log("sending data");
-                            res.send("cannot create session as you have id");
+                            res.json({"message":"cannot create session as you already have a session"});
                         } else if (!val && newSessionStartTime >= eSessionStartTime && newSessionStartTime <= eSessionEndTime) {
                             val = true;
                             console.log("sending data");
-                            res.send("cannot create session as you have id");
+                            res.json({"message":"cannot create session as you already have a session"});
     
                         } else if (!val && newSessionStartTime <= eSessionStartTime && newSessionEndTime >= eSessionEndTime) {
                             val = true;
                             console.log("sending data");
-                            res.send("cannot create session as you have id");
+                            res.json({"message":"cannot create session as you already have a session"});
     
                         }
     
@@ -221,7 +221,7 @@ app.post('/update-session', (req, res) => {
                         db.collection('quotes').update({ "identifier": batchid }, result);
                         updateUserSession.next(req.body);
                         console.log("db updated");
-                        res.send("updated successfully");
+                        res.json({"data":"updated successfully"});
                     }
     
     
@@ -246,7 +246,7 @@ app.post('/delete-session', (req,res) => {
     })
 
     promise.then(()=> {
-        res.send('session deleted');
+        res.json({"data":'session deleted'});
     })    
 })
 
