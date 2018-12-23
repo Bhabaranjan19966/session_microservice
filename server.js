@@ -80,7 +80,8 @@ updateUserSession.subscribe(
 
 deleteUserSession.subscribe(
     (userData)=>{
-        console.log(userData, "delete user session is called");
+        let sessionid = String(userData.sessionDetails.sessionId);
+        db.collection('user').update({}, { $pull: { sessions: { 'sessionDetails.sessionId': sessionid } } }, { multi: true });
     },
     err=>{
 
