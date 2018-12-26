@@ -47,6 +47,7 @@ addUserSession.subscribe(
 )
 
 updateUserSession.subscribe(
+
     (userData)=>{
         let sessionid = String(userData.sessionDetails.sessionId);
         let userid = String(userData.sessionDetails.createdBy);  
@@ -57,6 +58,7 @@ updateUserSession.subscribe(
                 resolve();
             },300)
         })
+
         promise.then(()=> {
             db.collection('user').findOne({'user': userid} , (err , result) => {
                 if(err) {
@@ -187,7 +189,7 @@ app.post('/update-session', (req, res) => {
                     result.sessions.push(req.body);
                     db.collection('quotes').update({ "identifier": batchid }, result);
                     console.log("db updated");
-                    updateUserSession.next(req.body);
+                    deleteUserSession.next(req.body);
                     res.json({'data':'sent data'});
                 } else {
                     const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
@@ -269,11 +271,43 @@ app.post('/getsessions', (req, res) => {
     let batchid = String(req.body.batchId);
     
     db.collection('quotes').findOne({'identifier':batchid} , (err, result) => {
-        if(err){
+    try{
+            if(err){
             console.log('someting went wrong')
+            throw err;
         }else{
+            console.log(result);
             res.json(result);
         }
+    }catch(err){
+        console.log('invalid batch-id');
+        res.json({'data':'invalid batch id'});
+    }
     })
     
+})
+
+app.post('/single-session', (req,res) =>{
+    let sessoinId= req.body.sessionId;
+    db.collection('quotes').aggregate([
+        {
+           $project: {
+              sessions: {
+                 $filter: {
+                    input: "$sessions",
+                    as: "session",
+                    cond: { $eq: [ "$$session.sessionDetails.sessionId", sessoinId ] }
+                 }
+              }
+           }
+        }
+     ]).toArray( (err ,result) => {
+         
+        for(let i = 0 ; i< result.length ; i++){
+            if(result[i].sessions !== null && result[i].sessions.length !==0){
+                res.json(result[i].sessions[0]);
+                break;
+            }
+        }   
+     })
 })
