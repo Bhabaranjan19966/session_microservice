@@ -363,10 +363,10 @@ app.post('/updateBatch', (req, res, next) => {
                                     err_detail: null,
                                     status: "success"
                                 },
-                                responseCode: "string",
+                                responseCode: "HTTP 201",
                                 result: {
-                                    response: "string",
-                                    date: result.ops[0]
+                                    response: "Succesfully Posted Addition Batch Details",
+                                    data: result.ops[0]
                                 }
                             }
                             res.status(201).json(additionalDetail);
@@ -382,18 +382,43 @@ app.post('/updateBatch', (req, res, next) => {
                 db.collection('batches').update({ _id: result._id }, updatedDelta)
                     .then(result => {
                         const additionalDetail = {
-                            result: result.message.documents[0],
-                            request: {
-                                type: 'POST',
-                                url: `http://localhost:3000/updateBatch`
+                            id: "string",
+                            ver: "string",
+                            ets: 0,
+                            params: {
+                                msgid: "string",
+                                resmsgid: "string",
+                                err: null,
+                                err_msg: null,
+                                err_detail: null,
+                                status: "success"
+                            },
+                            responseCode: "HTTP 200",
+                            result: {
+                                response: "Successfully updated existing batch details",
+                                data:updatedDelta
                             }
                         }
                         res.status(200).json(additionalDetail);
                     })
                     .catch(
                         err => {
-                            res.status(500).json({
-                                error: 'Update Error' + err
+                            res.status(204).json({
+                                id: "string",
+                                ver: "string",
+                                ets: 0,
+                                params: {
+                                    msgid: "string",
+                                    resmsgid: "string",
+                                    err: null,
+                                    err_msg: null,
+                                    err_detail: null,
+                                    status: "204 Not found"
+                                },
+                                responseCode: "HTTP 204",
+                                result: {
+                                    response: "Batch not found",
+                                }
                             });
                         })
             }
@@ -425,7 +450,7 @@ app.post('/fetchBatch', (req, res, next) => {
                     responseCode: "string",
                     result: {
                         response: "string",
-                        date: result
+                        data: result
                     }
 
                 })
@@ -440,9 +465,9 @@ app.post('/fetchBatch', (req, res, next) => {
                         err: null,
                         err_msg: null,
                         err_detail: null,
-                        status: "404 Not found"
+                        status: "204 Not found"
                     },
-                    responseCode: "HTTP 404",
+                    responseCode: "HTTP 204",
                     result: {
                         response: "Batch not found",
                     }
