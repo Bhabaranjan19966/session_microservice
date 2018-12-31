@@ -445,11 +445,11 @@ app.post('/fetchBatch', (req, res, next) => {
                         err: null,
                         err_msg: null,
                         err_detail: null,
-                        status: "success"
+                        status: "200 Status Ok"
                     },
-                    responseCode: "string",
+                    responseCode: "HTTP 200",
                     result: {
-                        response: "string",
+                        response: "Found Batch Details",
                         data: result
                     }
 
