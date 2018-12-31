@@ -409,13 +409,7 @@ app.post('/fetchBatch', (req, res, next) => {
     const deltaBatchDetails = req.body.request;
     db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
         .then(result => {
-            if (result === null) {
-                console.log(result);
-                res.status(404).json({
-                    error: 'Find Batch Result:', err
-                });
-            }
-            else {
+            if (result !== null) {
                 res.status(200).json({
                     id: "string",
                     ver: "string",
@@ -435,18 +429,36 @@ app.post('/fetchBatch', (req, res, next) => {
                     }
 
                 })
+            }else{
+                res.status(404).json({
+                    id: "string",
+                    ver: "string",
+                    ets: 0,
+                    params: {
+                        msgid: "string",
+                        resmsgid: "string",
+                        err: null,
+                        err_msg: null,
+                        err_detail: null,
+                        status: "404 Not found"
+                    },
+                    responseCode: "HTTP 404",
+                    result: {
+                        response: "Batch not found",
+                    }
+                })
             }
         })
         .catch(err => {
             res.status(500).json({
-                error: 'Server Error:', err
+                error: err
             });
         })
 })
 
 function dataPackagerU(deltaBatchDetails, existingResObject) {
     responseObject = {};
-    console.log(deltaBatchDetails);
+    responseObject['courseId'] = deltaBatchDetails.courseId;
     responseObject['batchId'] = deltaBatchDetails.batchId;
     if (existingResObject !== null) {
         if (existingResObject[deltaBatchDetails.createdById] !== null) {
@@ -493,11 +505,11 @@ function dataPackagerU(deltaBatchDetails, existingResObject) {
 
         }
     }
-    console.log('This is the resp Object', responseObject);
     return responseObject;
 }
 function dataPackager(deltaBatchDetails) {
     responseObject = {};
+    responseObject['courseId'] = deltaBatchDetails.courseId;
     responseObject['batchId'] = deltaBatchDetails.batchId;
     if (deltaBatchDetails.mentorsAdded.length > 0) {
         if (deltaBatchDetails.mentorsPresent.length > 0) {
@@ -512,7 +524,6 @@ function dataPackager(deltaBatchDetails) {
             responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded)];
         }
     }
-    console.log('This is the resp Object', responseObject);
     return responseObject;
 }
 
