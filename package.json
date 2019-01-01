@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --compilers babel-register"
   },
   "author": "",
   "license": "ISC",
@@ -14,10 +14,13 @@
     "mongodb": "^3.1.10",
     "rxjs": "^6.3.3",
     "rxjs-compat": "^6.3.3",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-http": "^4.2.0",
     "mocha": "^5.2.0",
     "morgan": "^1.9.1"
   }

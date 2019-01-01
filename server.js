@@ -12,9 +12,6 @@ const addUserSession = new rxjs.Subject();
 const updateUserSession = new rxjs.Subject();
 const deleteUserSession = new rxjs.Subject();
 
-//For batch update data packaging
-const updateBatchDetails = new rxjs.Subject();
-
 //Routes for batch management 
 // const batchUpdateRoutes = require('./routes/batch-management');
 
@@ -363,7 +360,7 @@ app.post('/updateBatch', (req, res, next) => {
                                     err_detail: null,
                                     status: "success"
                                 },
-                                responseCode: "HTTP 201",
+                                responseCode: "201",
                                 result: {
                                     response: "Succesfully Posted Addition Batch Details",
                                     data: result.ops[0]
@@ -393,7 +390,7 @@ app.post('/updateBatch', (req, res, next) => {
                                 err_detail: null,
                                 status: "success"
                             },
-                            responseCode: "HTTP 200",
+                            responseCode: "200",
                             result: {
                                 response: "Successfully updated existing batch details",
                                 data:updatedDelta
@@ -415,7 +412,7 @@ app.post('/updateBatch', (req, res, next) => {
                                     err_detail: null,
                                     status: "204 Not found"
                                 },
-                                responseCode: "HTTP 204",
+                                responseCode: "204",
                                 result: {
                                     response: "Batch not found",
                                 }
@@ -447,7 +444,7 @@ app.post('/fetchBatch', (req, res, next) => {
                         err_detail: null,
                         status: "200 Status Ok"
                     },
-                    responseCode: "HTTP 200",
+                    responseCode: "200",
                     result: {
                         response: "Found Batch Details",
                         data: result
@@ -465,9 +462,9 @@ app.post('/fetchBatch', (req, res, next) => {
                         err: null,
                         err_msg: null,
                         err_detail: null,
-                        status: "204 Not found"
+                        status: "404 Not found"
                     },
-                    responseCode: "HTTP 204",
+                    responseCode: "404",
                     result: {
                         response: "Batch not found",
                     }
@@ -543,10 +540,32 @@ function dataPackager(deltaBatchDetails) {
             responseObject[deltaBatchDetails.createdById] = deltaBatchDetails.mentorsAdded;
         }
     }
+    if (deltaBatchDetails.mentorsDeleted.length > 0) {
+        for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+            if (responseObject[deltaBatchDetails.createdById].indexOf(mentorD) !== -1) {
+                responseObject[deltaBatchDetails.createdById]
+                    .splice(responseObject[deltaBatchDetails.createdById].indexOf(mentorD), 1);
+            }
+        }
+    }
     for (mentor of responseObject[deltaBatchDetails.createdById]) {
         responseObject[mentor] = [];
         if (mentor === deltaBatchDetails.mentorWhoUpdated) {
             responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded)];
+            if (deltaBatchDetails.mentorsDeleted.length > 0) {
+                for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+                    if (responseObject[mentor].indexOf(mentorD) !== -1) {
+                        responseObject[mentor]
+                            .splice(responseObject[mentor].indexOf(mentorD), 1);
+                    }
+                    delete responseObject[mentorD];
+                }
+            }
+        }
+    }
+    if (deltaBatchDetails.mentorsDeleted.length > 0) {
+        for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+            delete responseObject[mentorD];
         }
     }
     return responseObject;
