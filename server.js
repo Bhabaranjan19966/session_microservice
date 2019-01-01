@@ -4,13 +4,9 @@ const rxjs = require('rxjs')
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 const UUID = require('uuid/v4');
-// const batchUpdateReq = require ('../models/batch-requests').batchUpdateReq;
-// const batchFetchReq = require ('../models/batch-requests').batchFetchReq;
-// const batchUpdateReqKeys = Object.keys(batchUpdateReq);
-// const batchFetchReqKeys = Object.keys(batchFetchReq);
-
+const Validate = require('./validation')
 const port = process.env.PORT || 8080;
-var db;
+let db;
 
 const addUserSession = new rxjs.Subject();
 const updateUserSession = new rxjs.Subject();
@@ -50,14 +46,14 @@ addUserSession.subscribe(
         let userid = String(userData.sessionDetails.createdBy);
         db.collection('user').findOne({ 'user': userid }, (error, result) => {
             if (error) {
-                console.log("someting went worng");
+                ////console.log("someting went worng");
             } else {
                 if (result === null) {
-                    console.log('created user session');
+                    ////console.log('created user session');
                     db.collection('user').save({ 'user': userid, sessions: [userData] })
                 } else {
                     result.sessions.push(userData);
-                    console.log('updated user sessions');
+                    //console.log('updated user sessions 1');
                     db.collection('user').update({ 'user': userid }, result);
                 }
             }
@@ -65,10 +61,10 @@ addUserSession.subscribe(
         })
     },
     err => {
-        console.log('some error happned while adding user session');
+        //console.log('some error happned while adding user session');
     },
     complete => {
-        console.log('add user session observale is not listning is completed');
+        //console.log('add user session observale is not listning is > completed');
     }
 )
 
@@ -78,20 +74,20 @@ updateUserSession.subscribe(
         let sessionid = String(userData.sessionDetails.sessionId);
         let userid = String(userData.sessionDetails.createdBy);
         var promise = new Promise((resolve, reject) => {
-            console.log('deleting user session');
+            //console.log('deleting user session');
             db.collection('user').update({}, { $pull: { sessions: { 'sessionDetails.sessionId': sessionid } } }, { multi: true });
-            setTimeout(() => {
-                resolve();
-            }, 300)
+
+            resolve();
+
         })
 
         promise.then(() => {
             db.collection('user').findOne({ 'user': userid }, (err, result) => {
                 if (err) {
-                    console.log('someting went wrong');
+                    //console.log('someting went wrong');
                 } else {
                     result.sessions.push(userData);
-                    console.log("updated user session");
+                    //console.log("updated user session 2");
                     db.collection('user').update({ 'user': userid }, result)
                 }
             })
@@ -118,64 +114,76 @@ deleteUserSession.subscribe(
 
     }
 )
-// MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
-//     if (err) { console.log("-----------------------------", err); }
-//     db = client.db('test-db');
-//     console.log('connected to data base');
-//     app.listen(port, () => {
-//         console.log("app is running on port :", port);
-//     });
-// })
-MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
-    if (err) { console.log("-----------------------------", err); }
+MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
+    if (err) { //console.log("-----------------------------", err); 
+}
     db = client.db('test-db');
-    console.log('connected to data base');
+    //console.log('connected to data base');
     app.listen(port, () => {
-        console.log("app is running on port :", port);
+        //console.log("app is running on port :", port);
     });
 })
+// MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
+//     if (err) { //console.log("-----------------------------", err); 
+// }
+//     db = client.db('test-db');
+//     //console.log('connected to data base');
+//     app.listen(port, () => {
+//         //console.log("app is running on port :", port);
+//     });
+
+// })
 
 
 app.post('/create-session', (req, res) => {
+    if (!Validate.validateCreateSession(req.body)) {
+        return res.json({
+            "error": "Missing fields",
+            "responseCode": 400
+        })
+    }
     let batchid = String(req.body.identifier);
+    //console.log(batchid);
+
     db.collection('quotes').findOne({ "identifier": batchid }, (err, result) => {
         if (err) {
-            console.log("some error ---------------", err);
+            return res.json(err);
+
         } else {
             if (result === null) {
                 let sessionID = UUID();
                 req.body.sessionDetails.sessionId = sessionID;
                 db.collection('quotes').save({ 'identifier': batchid, "sessions": [req.body] }, (err, result) => {
                     if (err) {
-                        console.log(err);
+                        //console.log(err);
                     }
                     addUserSession.next(req.body);
-                    res.json({ "value": 'data successfully inserted to the database' });
+                    res.json({ "message": 'data successfully inserted to the database', sessionId: sessionID });
                 })
             } else {
 
                 const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
-                const newSessionEndTime = new Date(req.body.sessionDetails.sessionStartDate);
-                console.log(newSessionStartTime, newSessionEndTime);
+                const newSessionEndTime = new Date(req.body.sessionDetails.sessionEndDate);
+                //console.log(newSessionStartTime, newSessionEndTime);
                 let sessionID = UUID();
                 let val = false;
                 result.sessions.map(session => {
-                    console.log("inside map");
+                    //console.log("inside map");
                     let eSessionStartTime = new Date(session.sessionDetails.sessionStartDate);
-                    let eSessionEndTime = new Date(session.sessionDetails.sessionStartDate);
+                    let eSessionEndTime = new Date(session.sessionDetails.sessionEndDate);
                     let eSessionId = session.sessionDetails.sessionId;
                     if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                         val = true;
-                        console.log("sending data");
+                        //console.log("sending data");
                         res.json({ "message": "cannot create session as you already have a session" });
                     } else if (!val && newSessionStartTime >= eSessionStartTime && newSessionStartTime <= eSessionEndTime) {
                         val = true;
-                        console.log("sending data");
+                        //console.log("sending data");
                         res.json({ "message": "cannot create session as you already have a session" });
 
                     } else if (!val && newSessionStartTime <= eSessionStartTime && newSessionEndTime >= eSessionEndTime) {
                         val = true;
-                        console.log("sending data");
+                        //console.log("sending data");
                         res.json({ "message": "cannot create session as you already have a session" });
 
                     }
@@ -186,8 +194,8 @@ app.post('/create-session', (req, res) => {
                     result.sessions.push(req.body);
                     db.collection('quotes').update({ "identifier": batchid }, result);
                     addUserSession.next(req.body);
-                    console.log("db updated");
-                    res.json({ "data": "updated successfully" });
+                    //console.log("db updated");
+                    res.json({ "message": 'data successfully inserted to the database', sessionId: sessionID });
                 }
 
             }
@@ -196,54 +204,62 @@ app.post('/create-session', (req, res) => {
 })
 
 
-
 app.post('/update-session', (req, res) => {
+
+    if (!Validate.validateUpdateSession(req.body)) {
+        return res.json({
+            "error": "Missing fields",
+            "responseCode": 400
+        })
+    }
+
+
     let sessionid = String(req.body.sessionDetails.sessionId);
     let batchid = String(req.body.identifier);
 
     var promise = new Promise((resolve, reject) => {
         db.collection('quotes').update({}, { $pull: { sessions: { 'sessionDetails.sessionId': sessionid } } }, { multi: true });
-        updateUserSession.next(req.body);
+        deleteUserSession.next(req.body);
         setTimeout(() => {
             resolve();
         }, 300)
     })
 
     promise.then(() => {
-        console.log(sessionid, req.body.sessionDetails.sessionID);
+        //console.log(sessionid, req.body.sessionDetails.sessionID);
         db.collection('quotes').findOne({ "identifier": batchid }, (err, result) => {
             if (err) {
-                console.log('error in performing operation', err);
+                //console.log('error in performing operation', err);
             } else {
 
                 if (result.sessions.length === 0) {
                     result.sessions.push(req.body);
                     db.collection('quotes').update({ "identifier": batchid }, result);
-                    console.log("db updated");
-                    deleteUserSession.next(req.body);
-                    res.json({ 'data': 'sent data' });
+                    //console.log("db updated");
+                    updateUserSession.next(req.body);
+                    res.json({ "message": "updated successfully", "responseCode": 200 });
                 } else {
                     const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
-                    const newSessionEndTime = new Date(req.body.sessionDetails.sessionStartDate);
-                    console.log(newSessionStartTime, newSessionEndTime);
+                    const newSessionEndTime = new Date(req.body.sessionDetails.sessionEndDate);
+                    //console.log(newSessionStartTime, newSessionEndTime);
                     let val = false;
                     result.sessions.map(session => {
-                        console.log("inside map");
+                        //console.log("inside map");
                         let eSessionStartTime = new Date(session.sessionDetails.sessionStartDate);
-                        let eSessionEndTime = new Date(session.sessionDetails.sessionStartDate);
+                        let eSessionEndTime = new Date(session.sessionDetails.sessionEndDate);
                         // let eSessionId = session.sessionDetails.sessionId;
                         if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                             val = true;
-                            console.log("sending data");
+                            //console.log("sending data");
                             res.json({ "message": "cannot create session as you already have a session" });
                         } else if (!val && newSessionStartTime >= eSessionStartTime && newSessionStartTime <= eSessionEndTime) {
                             val = true;
-                            console.log("sending data");
+                            //console.log("sending data");
                             res.json({ "message": "cannot create session as you already have a session" });
 
                         } else if (!val && newSessionStartTime <= eSessionStartTime && newSessionEndTime >= eSessionEndTime) {
                             val = true;
-                            console.log("sending data");
+                            //console.log("sending data");
                             res.json({ "message": "cannot create session as you already have a session" });
 
                         }
@@ -253,8 +269,8 @@ app.post('/update-session', (req, res) => {
                         result.sessions.push(req.body);
                         db.collection('quotes').update({ "identifier": batchid }, result);
                         updateUserSession.next(req.body);
-                        console.log("db updated");
-                        res.json({ "data": "updated successfully" });
+                        //console.log("db updated");
+                        res.json({ "message": "updated successfully", "responseCode": 200 });
                     }
 
 
@@ -268,6 +284,14 @@ app.post('/update-session', (req, res) => {
 
 
 app.post('/delete-session', (req, res) => {
+
+    if (!Validate.validateDeleteSession(req.body)) {
+        return res.json({
+            "error": "Missing fields",
+            "responseCode": 400
+        })
+    }
+
     let sessionid = String(req.body.sessionDetails.sessionId);
 
     var promise = new Promise((resolve, reject) => {
@@ -284,12 +308,21 @@ app.post('/delete-session', (req, res) => {
 })
 
 app.post("/user-sessions", (req, res) => {
+
+    if (!Validate.validateUserSessions(req.body)) {
+        return res.json({
+            "error": "Missing fields",
+            "responseCode": 400
+        })
+    }
+
     let userid = String(req.body.userId);
 
     db.collection('user').findOne({ 'user': userid }, (err, result) => {
         if (err) {
-            console.log('someting went wrong');
+            //console.log('someting went wrong');
         } else {
+            //console.log(JSON.stringify(result), " sending user session details")
             res.json(result);
         }
 
@@ -299,19 +332,29 @@ app.post("/user-sessions", (req, res) => {
 
 
 app.post('/getsessions', (req, res) => {
+
+
+    if (!Validate.validateGetSessions(req.body)) {
+        return res.json({
+            "error": "Missing fields",
+            "responseCode": 400
+        })
+    }
+
+
     let batchid = String(req.body.batchId);
 
     db.collection('quotes').findOne({ 'identifier': batchid }, (err, result) => {
         try {
             if (err) {
-                console.log('someting went wrong')
+                //console.log('someting went wrong')
                 throw err;
             } else {
-                console.log(result);
+                //console.log(result);
                 res.json(result);
             }
         } catch (err) {
-            console.log('invalid batch-id');
+            //console.log('invalid batch-id');
             res.json({ 'data': 'invalid batch id' });
         }
     })
@@ -319,6 +362,16 @@ app.post('/getsessions', (req, res) => {
 })
 
 app.post('/single-session', (req, res) => {
+
+    if (!Validate.validateSingleSession(req.body)) {
+        return res.json({
+            "error": "Missing fields",
+            "responseCode": 400
+        })
+    }
+
+
+
     let sessoinId = req.body.sessionId;
     db.collection('quotes').aggregate([
         {
@@ -344,7 +397,7 @@ app.post('/single-session', (req, res) => {
 })
 
 app.post('/updateBatch', (req, res, next) => {
-    if(req.body.hasOwnProperty('request')){
+    if(Validate.validateUpdateBatch(req.body)){
         const deltaBatchDetails = req.body.request;
         db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
         .then(result => {
@@ -452,7 +505,7 @@ app.post('/updateBatch', (req, res, next) => {
 })
 
 app.post('/fetchBatch', (req, res, next) => {
-    if(req.body.hasOwnProperty('request')){
+    if(Validate.validateFetchBatch(req.body)){
     const deltaBatchDetails = req.body.request;
     db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
         .then(result => {

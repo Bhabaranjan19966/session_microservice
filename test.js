@@ -67,13 +67,13 @@ describe('test cases for create-session ', () => {
             })
             .end((err, resp, body) => {
                 if (err) {
-                    console.log('something went wrong ', err);
+                    // ////console.log('something went wrong ', err);
                 } else {
                     sessionId = String(resp.body.sessionId);
-                    console.log(sessionId,'sessionId');
-                    console.log(resp.body,'create session');
+                    // ////console.log(sessionId, 'sessionId');
+                    // ////console.log(resp.body, 'create session');
                     chai.expect(resp.body).to.have.property('message');
-                    console.log('checking sessions')
+                    // ////console.log('checking sessions')
                     chai.expect(resp.body.message).to.equal('data successfully inserted to the database');
                     done();
                 }
@@ -87,7 +87,7 @@ describe('test cases for create-session ', () => {
                 "invalid": 456
             })
             .end((error, resp, body) => {
-                console.log(resp.body, "should err")
+                // ////console.log(resp.body, "should err")
                 chai.expect(resp.body).to.have.property('responseCode');
                 chai.expect(resp.body.responseCode).to.equal(400);
                 done();
@@ -109,18 +109,23 @@ describe('test cases for create-session ', () => {
                 }
             )
             .end((error, resp, body) => {
-                console.log(resp.body, 's not')
+                // ////console.log(resp.body, 's not')
                 chai.expect(resp.body).to.have.property('message');
                 chai.expect(resp.body.message).to.equal("cannot create session as you already have a session");
                 done();
             })
     })
 })
+
+
+
+
 describe('testing update-session API', () => {
+
     let path = '/update-session'
-    
+
     it('should uptdate the session information', (done) => {
-        console.log(sessionId);
+        // ////console.log(sessionId);
         chai
             .request(host)
             .post(path)
@@ -136,15 +141,16 @@ describe('testing update-session API', () => {
                 }
             )
             .end((error, resp, body) => {
-                console.log(resp.body," update")
+                // ////console.log(resp.body, " update")
                 chai.expect(resp.body).to.have.property('responseCode');
                 chai.expect(resp.body.responseCode).to.equal(200);
                 done();
             })
     })
+
     it('session updation confirmed', (done) => {
         path = '/single-session'
-        console.log(path);
+        // ////console.log(path);
         chai
             .request(host)
             .post(path)
@@ -156,9 +162,10 @@ describe('testing update-session API', () => {
                 done();
             })
     })
+
     it('should respond with an response-code 400 for invalid request object', (done) => {
         path = '/update-session'
-        console.log(path);
+        // ////console.log(path);
         chai
             .request(host)
             .post(path)
@@ -171,18 +178,20 @@ describe('testing update-session API', () => {
             })
     })
 })
+
+
 describe('testing getsessions', () => {
-    
-    before(()=>{
-        path="/getsessions"
+
+    before(() => {
+        path = "/getsessions"
     })
-    
+
     it('should return responseCode 400 for invalid request body', (done) => {
         chai
             .request(host)
             .post(path)
             .send({
-                "asdf":"adf"
+                "asdf": "adf"
             })
             .end((error, resp, body) => {
                 chai.expect(resp.body).to.have.property('responseCode');
@@ -190,65 +199,73 @@ describe('testing getsessions', () => {
                 done();
             })
     })
-    it('should return batch-sessions',(done)=>{
+
+    it('should return batch-sessions', (done) => {
         chai
             .request(host)
             .post(path)
             .send({
-                batchId:'123456'
+                batchId: '123456'
             })
-            .end((error , resp , body) => {
-                console.log(resp.body);
+            .end((error, resp, body) => {
+                // ////console.log(resp.body);
                 chai.expect(resp.body).to.have.property('sessions');
                 chai.expect(resp.body.sessions.length).to.not.equal(0);
                 done();
             })
     })
+
 })
+
+
 describe('testing single-session', () => {
-    
-    before(()=>{
-        path="/single-session"
+
+    before(() => {
+        path = "/single-session"
     })
-    it('should return response code 400 for invalid request object' , (done) => {
+
+    it('should return response code 400 for invalid request object', (done) => {
         chai
             .request(host)
             .post(path)
             .send({
-                "lskdf":"lskfd"
+                "lskdf": "lskfd"
             })
-            .end((error , resp , body) =>{
+            .end((error, resp, body) => {
                 chai.expect(resp.body).to.have.property('responseCode');
                 chai.expect(resp.body.responseCode).to.equal(400);
                 done();
             })
     })
-    
-    it('should return a single session object' , (done)=> {
+
+    it('should return a single session object', (done) => {
         chai
             .request(host)
             .post(path)
             .send({
-                "sessionId":sessionId
+                "sessionId": sessionId
             })
-            .end( (error , resp , body) =>{
-                console.log(JSON.stringify(resp.body),'single session object');
+            .end((error, resp, body) => {
+                // ////console.log(JSON.stringify(resp.body), 'single session object');
                 chai.expect(resp.body).to.have.property('sessionDetails');
                 done();
             })
+
     })
 })
+
 describe('testing user-sessions', () => {
-    
-    before(()=>{
+
+    before(() => {
         path = "/user-sessions";
     })
+
     it('should return responseCode 400 for invalid request body', (done) => {
         chai
             .request(host)
             .post(path)
             .send({
-                "asdf":"adf"
+                "asdf": "adf"
             })
             .end((error, resp, body) => {
                 chai.expect(resp.body).to.have.property('responseCode');
@@ -256,40 +273,45 @@ describe('testing user-sessions', () => {
                 done();
             })
     })
+
     it('should return user sessions', (done) => {
+
         chai
             .request(host)
             .post(path)
             .send(
                 {
-                    userId:"789255"
+                    userId: "789255"
                 }
             )
             .end((error, resp, body) => {
-                console.log(JSON.stringify(resp.body), "user session response")
-                console.log(resp.body.sessions.length,"session length")
+                // ////console.log(JSON.stringify(resp.body), "user session response")
+                // ////console.log(resp.body.sessions.length, "session length")
                 chai.expect(resp.body).to.has.property('sessions');
                 chai.expect(resp.body.sessions.length).to.not.equal(0);
                 done();
             })
+
     })
 })
+
+
 describe('testing delete session', () => {
-    it('should throw an response code of 400',(done)=>{
+
+    it('should throw an response code of 400', (done) => {
         chai
             .request(host)
             .post(path)
             .send({
-                "sf":"sdf"
+                "sf": "sdf"
             })
-            .end((error , resp , body) =>{
+            .end((error, resp, body) => {
                 chai.expect(resp.body).to.have.property('responseCode');
-                chai.expect(resp.body.responseCode).to.equal(400);                
+                chai.expect(resp.body.responseCode).to.equal(400);
                 done();
             })
     })
 })
-
 describe('Test Case for update batch additional details', () => {
     
     before(()=>{
@@ -304,9 +326,9 @@ describe('Test Case for update batch additional details', () => {
             .send(testObject_1)
             .end((err, res, body) => {
                 if (err) {
-                    console.log('Something went wrong', err);
+                    //////console.log('Something went wrong', err);
                 } else {
-                    console.log(res.body)
+                    //////console.log(res.body)
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.result.data).to.have.property(testObject_1.request.createdById).with.lengthOf(testObject_1.request.mentorsAdded.length+testObject_1.request.mentorsPresent.length);
                     if(res.body.responseCode === '201'){
@@ -327,9 +349,9 @@ describe('Test Case for update batch additional details', () => {
             .send(testObject_2)
             .end((err, res, body) => {
                 if (err) {
-                    console.log('Something went wrong', err);
+                    //////console.log('Something went wrong', err);
                 } else {
-                    console.log(res.body)
+                    //////console.log(res.body)
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.result.data).to.have.property(testObject_2.request.createdById).with.lengthOf(testObject_2.request.mentorsAdded.length+testObject_2.request.mentorsPresent.length-testObject_2.request.mentorsDeleted.length);
                     if(res.body.responseCode === '201'){
@@ -349,9 +371,9 @@ describe('Test Case for update batch additional details', () => {
             .send(testObject_3)
             .end((err, res, body) => {
                 if (err) {
-                    console.log('Something went wrong', err);
+                    //////console.log('Something went wrong', err);
                 } else {
-                    console.log(res.body)
+                    //////console.log(res.body)
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.result.data).to.have.property(testObject_3.request.createdById).with.lengthOf(testObject_3.request.mentorsAdded.length);
                     if(res.body.responseCode === '201'){
@@ -372,7 +394,7 @@ describe('Test Case for update batch additional details', () => {
                 "invalid": 456
             })
             .end((error, resp, body) => {
-                console.log(resp.body, "should err")
+                ////console.log(resp.body, "should err")
                 chai.expect(resp.body).to.have.property('responseCode');
                 chai.expect(resp.body.responseCode).to.equal('400');
                 done();
@@ -394,7 +416,7 @@ describe('Test Case for fetch batch additional details', () => {
             .send(testObject_4)
             .end((err, res, body) => {
                 if (err) {
-                    console.log('Something went wrong', err);
+                    ////console.log('Something went wrong', err);
                 } else {
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.responseCode).to.equal('200');
@@ -409,7 +431,7 @@ describe('Test Case for fetch batch additional details', () => {
             .send(testObject_5)
             .end((err, res, body) => {
                 if (err) {
-                    console.log('Something went wrong', err);
+                    ////console.log('Something went wrong', err);
                 } else {
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.responseCode).to.equal('404');
@@ -425,7 +447,7 @@ describe('Test Case for fetch batch additional details', () => {
                 "invalid": 456
             })
             .end((error, resp, body) => {
-                console.log(resp.body, "should err")
+                ////console.log(resp.body, "should err")
                 chai.expect(resp.body).to.have.property('responseCode');
                 chai.expect(resp.body.responseCode).to.equal('400');
                 done();
