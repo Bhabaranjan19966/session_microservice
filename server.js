@@ -6,32 +6,54 @@ const MongoClient = require('mongodb').MongoClient;
 const UUID = require('uuid/v4');
 const Validate = require('./validation')
 const port = process.env.PORT || 8080;
-var db;
+let db;
 
 const addUserSession = new rxjs.Subject();
 const updateUserSession = new rxjs.Subject();
 const deleteUserSession = new rxjs.Subject();
 
+//Routes for batch management 
+// const batchUpdateRoutes = require('./routes/batch-management');
 
-app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//Morgan is for logging the HTTP Requests
+const morgan = require('morgan');
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+
+
+// app.use('/batch', batchUpdateRoutes);
+app.use(morgan('dev'));
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept,Authorization',
+    );
+    if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Methods', 'PUT,POST,PATCH,DELETE,GET,PUT');
+        return res.status(200).json({});
+    }
     next();
 });
+
+
 
 addUserSession.subscribe(
     (userData) => {
         let userid = String(userData.sessionDetails.createdBy);
         db.collection('user').findOne({ 'user': userid }, (error, result) => {
             if (error) {
-                console.log("someting went worng");
+                ////console.log("someting went worng");
             } else {
                 if (result === null) {
-                    console.log('created user session');
+                    ////console.log('created user session');
                     db.collection('user').save({ 'user': userid, sessions: [userData] })
                 } else {
                     result.sessions.push(userData);
-                    console.log('updated user sessions 1');
+                    //console.log('updated user sessions 1');
                     db.collection('user').update({ 'user': userid }, result);
                 }
             }
@@ -39,10 +61,10 @@ addUserSession.subscribe(
         })
     },
     err => {
-        console.log('some error happned while adding user session');
+        //console.log('some error happned while adding user session');
     },
     complete => {
-        console.log('add user session observale is not listning is > completed');
+        //console.log('add user session observale is not listning is > completed');
     }
 )
 
@@ -52,7 +74,7 @@ updateUserSession.subscribe(
         let sessionid = String(userData.sessionDetails.sessionId);
         let userid = String(userData.sessionDetails.createdBy);
         var promise = new Promise((resolve, reject) => {
-            console.log('deleting user session');
+            //console.log('deleting user session');
             db.collection('user').update({}, { $pull: { sessions: { 'sessionDetails.sessionId': sessionid } } }, { multi: true });
 
             resolve();
@@ -62,10 +84,10 @@ updateUserSession.subscribe(
         promise.then(() => {
             db.collection('user').findOne({ 'user': userid }, (err, result) => {
                 if (err) {
-                    console.log('someting went wrong');
+                    //console.log('someting went wrong');
                 } else {
                     result.sessions.push(userData);
-                    console.log("updated user session 2");
+                    //console.log("updated user session 2");
                     db.collection('user').update({ 'user': userid }, result)
                 }
             })
@@ -92,16 +114,25 @@ deleteUserSession.subscribe(
 
     }
 )
-app.use(bodyParser.json());
-
 MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
-    if (err) { console.log("-----------------------------", err); }
+    if (err) { //console.log("-----------------------------", err); 
+}
     db = client.db('test-db');
-    console.log('connected to data base');
+    //console.log('connected to data base');
     app.listen(port, () => {
-        console.log("app is running on port :", port);
+        //console.log("app is running on port :", port);
     });
 })
+// MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
+//     if (err) { //console.log("-----------------------------", err); 
+// }
+//     db = client.db('test-db');
+//     //console.log('connected to data base');
+//     app.listen(port, () => {
+//         //console.log("app is running on port :", port);
+//     });
+
+// })
 
 
 app.post('/create-session', (req, res) => {
@@ -112,7 +143,7 @@ app.post('/create-session', (req, res) => {
         })
     }
     let batchid = String(req.body.identifier);
-    console.log(batchid);
+    //console.log(batchid);
 
     db.collection('quotes').findOne({ "identifier": batchid }, (err, result) => {
         if (err) {
@@ -124,9 +155,8 @@ app.post('/create-session', (req, res) => {
                 req.body.sessionDetails.sessionId = sessionID;
                 db.collection('quotes').save({ 'identifier': batchid, "sessions": [req.body] }, (err, result) => {
                     if (err) {
-                        console.log(err);
+                        //console.log(err);
                     }
-
                     addUserSession.next(req.body);
                     res.json({ "message": 'data successfully inserted to the database', sessionId: sessionID });
                 })
@@ -134,26 +164,26 @@ app.post('/create-session', (req, res) => {
 
                 const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
                 const newSessionEndTime = new Date(req.body.sessionDetails.sessionEndDate);
-                console.log(newSessionStartTime, newSessionEndTime);
+                //console.log(newSessionStartTime, newSessionEndTime);
                 let sessionID = UUID();
                 let val = false;
                 result.sessions.map(session => {
-                    console.log("inside map");
+                    //console.log("inside map");
                     let eSessionStartTime = new Date(session.sessionDetails.sessionStartDate);
                     let eSessionEndTime = new Date(session.sessionDetails.sessionEndDate);
                     let eSessionId = session.sessionDetails.sessionId;
                     if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                         val = true;
-                        console.log("sending data");
+                        //console.log("sending data");
                         res.json({ "message": "cannot create session as you already have a session" });
                     } else if (!val && newSessionStartTime >= eSessionStartTime && newSessionStartTime <= eSessionEndTime) {
                         val = true;
-                        console.log("sending data");
+                        //console.log("sending data");
                         res.json({ "message": "cannot create session as you already have a session" });
 
                     } else if (!val && newSessionStartTime <= eSessionStartTime && newSessionEndTime >= eSessionEndTime) {
                         val = true;
-                        console.log("sending data");
+                        //console.log("sending data");
                         res.json({ "message": "cannot create session as you already have a session" });
 
                     }
@@ -164,7 +194,7 @@ app.post('/create-session', (req, res) => {
                     result.sessions.push(req.body);
                     db.collection('quotes').update({ "identifier": batchid }, result);
                     addUserSession.next(req.body);
-                    console.log("db updated");
+                    //console.log("db updated");
                     res.json({ "message": 'data successfully inserted to the database', sessionId: sessionID });
                 }
 
@@ -196,40 +226,40 @@ app.post('/update-session', (req, res) => {
     })
 
     promise.then(() => {
-        console.log(sessionid, req.body.sessionDetails.sessionID);
+        //console.log(sessionid, req.body.sessionDetails.sessionID);
         db.collection('quotes').findOne({ "identifier": batchid }, (err, result) => {
             if (err) {
-                console.log('error in performing operation', err);
+                //console.log('error in performing operation', err);
             } else {
 
                 if (result.sessions.length === 0) {
                     result.sessions.push(req.body);
                     db.collection('quotes').update({ "identifier": batchid }, result);
-                    console.log("db updated");
+                    //console.log("db updated");
                     updateUserSession.next(req.body);
                     res.json({ "message": "updated successfully", "responseCode": 200 });
                 } else {
                     const newSessionStartTime = new Date(req.body.sessionDetails.sessionStartDate);
                     const newSessionEndTime = new Date(req.body.sessionDetails.sessionEndDate);
-                    console.log(newSessionStartTime, newSessionEndTime);
+                    //console.log(newSessionStartTime, newSessionEndTime);
                     let val = false;
                     result.sessions.map(session => {
-                        console.log("inside map");
+                        //console.log("inside map");
                         let eSessionStartTime = new Date(session.sessionDetails.sessionStartDate);
                         let eSessionEndTime = new Date(session.sessionDetails.sessionEndDate);
                         // let eSessionId = session.sessionDetails.sessionId;
                         if (!val && newSessionEndTime >= eSessionStartTime && newSessionEndTime <= eSessionEndTime) {
                             val = true;
-                            console.log("sending data");
+                            //console.log("sending data");
                             res.json({ "message": "cannot create session as you already have a session" });
                         } else if (!val && newSessionStartTime >= eSessionStartTime && newSessionStartTime <= eSessionEndTime) {
                             val = true;
-                            console.log("sending data");
+                            //console.log("sending data");
                             res.json({ "message": "cannot create session as you already have a session" });
 
                         } else if (!val && newSessionStartTime <= eSessionStartTime && newSessionEndTime >= eSessionEndTime) {
                             val = true;
-                            console.log("sending data");
+                            //console.log("sending data");
                             res.json({ "message": "cannot create session as you already have a session" });
 
                         }
@@ -239,7 +269,7 @@ app.post('/update-session', (req, res) => {
                         result.sessions.push(req.body);
                         db.collection('quotes').update({ "identifier": batchid }, result);
                         updateUserSession.next(req.body);
-                        console.log("db updated");
+                        //console.log("db updated");
                         res.json({ "message": "updated successfully", "responseCode": 200 });
                     }
 
@@ -290,9 +320,9 @@ app.post("/user-sessions", (req, res) => {
 
     db.collection('user').findOne({ 'user': userid }, (err, result) => {
         if (err) {
-            console.log('someting went wrong');
+            //console.log('someting went wrong');
         } else {
-            console.log(JSON.stringify(result), " sending user session details")
+            //console.log(JSON.stringify(result), " sending user session details")
             res.json(result);
         }
 
@@ -317,14 +347,14 @@ app.post('/getsessions', (req, res) => {
     db.collection('quotes').findOne({ 'identifier': batchid }, (err, result) => {
         try {
             if (err) {
-                console.log('someting went wrong')
+                //console.log('someting went wrong')
                 throw err;
             } else {
-                console.log(result);
+                //console.log(result);
                 res.json(result);
             }
         } catch (err) {
-            console.log('invalid batch-id');
+            //console.log('invalid batch-id');
             res.json({ 'data': 'invalid batch id' });
         }
     })
@@ -365,5 +395,278 @@ app.post('/single-session', (req, res) => {
         }
     })
 })
+
+app.post('/updateBatch', (req, res, next) => {
+    if(Validate.validateUpdateBatch(req.body)){
+        const deltaBatchDetails = req.body.request;
+        db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
+        .then(result => {
+            if (result === null) {
+                updatedDelta = dataPackager(deltaBatchDetails);
+                db.collection('batches').insertOne(updatedDelta)
+                    .then(
+                        result => {
+                            const additionalDetail = {
+                                id: "string",
+                                ver: "string",
+                                ets: 0,
+                                params: {
+                                    msgid: "string",
+                                    resmsgid: "string",
+                                    err: null,
+                                    err_msg: null,
+                                    err_detail: null,
+                                    status: "success"
+                                },
+                                responseCode: "201",
+                                result: {
+                                    response: "Succesfully Posted Addition Batch Details",
+                                    data: result.ops[0]
+                                }
+                            }
+                            res.status(201).json(additionalDetail);
+                        })
+                    .catch(err => {
+                        res.status(500).json({
+                            error: 'New Post Error:' + err
+                        });
+                    })
+            }
+            else {
+                updatedDelta = dataPackagerU(deltaBatchDetails, result);
+                db.collection('batches').update({ _id: result._id }, updatedDelta)
+                    .then(result => {
+                        const additionalDetail = {
+                            id: "string",
+                            ver: "string",
+                            ets: 0,
+                            params: {
+                                msgid: "string",
+                                resmsgid: "string",
+                                err: null,
+                                err_msg: null,
+                                err_detail: null,
+                                status: "success"
+                            },
+                            responseCode: "200",
+                            result: {
+                                response: "Successfully updated existing batch details",
+                                data:updatedDelta
+                            }
+                        }
+                        res.status(200).json(additionalDetail);
+                    })
+                    .catch(
+                        err => {
+                            res.status(204).json({
+                                id: "string",
+                                ver: "string",
+                                ets: 0,
+                                params: {
+                                    msgid: "string",
+                                    resmsgid: "string",
+                                    err: null,
+                                    err_msg: null,
+                                    err_detail: null,
+                                    status: "204 Not found"
+                                },
+                                responseCode: "204",
+                                result: {
+                                    response: "Batch not found",
+                                }
+                            });
+                        })
+            }
+        })
+        .catch(err => {
+            res.status(500).json({
+                error: 'Find Error' + err
+            });
+        })
+    }else{
+        res.status(400).json({
+            id: "string",
+            ver: "string",
+            ets: 0,
+            params: {
+                msgid: "string",
+                resmsgid: "string",
+                err: null,
+                err_msg: null,
+                err_detail: null,
+                status: "400 Bad Request"
+            },
+            responseCode: "400",
+            result: {
+                response: "Check JSON document",
+            }
+        });
+    }
+})
+
+app.post('/fetchBatch', (req, res, next) => {
+    if(Validate.validateFetchBatch(req.body)){
+    const deltaBatchDetails = req.body.request;
+    db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
+        .then(result => {
+            if (result !== null) {
+                res.status(200).json({
+                    id: "string",
+                    ver: "string",
+                    ets: 0,
+                    params: {
+                        msgid: "string",
+                        resmsgid: "string",
+                        err: null,
+                        err_msg: null,
+                        err_detail: null,
+                        status: "200 Status Ok"
+                    },
+                    responseCode: "200",
+                    result: {
+                        response: "Found Batch Details",
+                        data: result
+                    }
+
+                })
+            }else{
+                res.status(404).json({
+                    id: "string",
+                    ver: "string",
+                    ets: 0,
+                    params: {
+                        msgid: "string",
+                        resmsgid: "string",
+                        err: null,
+                        err_msg: null,
+                        err_detail: null,
+                        status: "404 Not found"
+                    },
+                    responseCode: "404",
+                    result: {
+                        response: "Batch not found",
+                    }
+                })
+            }
+        })
+        .catch(err => {
+            res.status(500).json({
+                error: err
+            });
+        })
+    }else{
+        res.status(400).json({
+            id: "string",
+            ver: "string",
+            ets: 0,
+            params: {
+                msgid: "string",
+                resmsgid: "string",
+                err: null,
+                err_msg: null,
+                err_detail: null,
+                status: "400 Bad Request"
+            },
+            responseCode: "400",
+            result: {
+                response: "Check JSON document",
+            }
+        });
+    }
+})
+
+function dataPackagerU(deltaBatchDetails, existingResObject) {
+    responseObject = {};
+    responseObject['courseId'] = deltaBatchDetails.courseId;
+    responseObject['batchId'] = deltaBatchDetails.batchId;
+    if (existingResObject !== null) {
+        if (existingResObject[deltaBatchDetails.createdById] !== null) {
+            allMentorsPresent = [...new Set(existingResObject[deltaBatchDetails.createdById].concat(deltaBatchDetails.mentorsAdded))];
+            if (deltaBatchDetails.mentorsAdded.length > 0) {
+                responseObject[deltaBatchDetails.createdById] = allMentorsPresent;
+            }
+            else {
+                responseObject[deltaBatchDetails.createdById] = [...new Set(existingResObject[deltaBatchDetails.createdById])];
+            }
+        }
+        if (deltaBatchDetails.mentorsDeleted.length > 0) {
+            for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+                if (responseObject[deltaBatchDetails.createdById].indexOf(mentorD) !== -1) {
+                    responseObject[deltaBatchDetails.createdById]
+                        .splice(responseObject[deltaBatchDetails.createdById].indexOf(mentorD), 1);
+                }
+            }
+        }
+        if (responseObject[deltaBatchDetails.createdById].length > 0) {
+            for (mentor of responseObject[deltaBatchDetails.createdById]) {
+                if (deltaBatchDetails.mentorWhoUpdated === mentor) {
+                    responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded.concat(existingResObject[mentor]))];
+                    if (deltaBatchDetails.mentorsDeleted.length > 0) {
+                        for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+                            if (responseObject[mentor].indexOf(mentorD) !== -1) {
+                                responseObject[mentor]
+                                    .splice(responseObject[mentor].indexOf(mentorD), 1);
+                            }
+                            delete responseObject[mentorD];
+                        }
+                    }
+                }
+                else {
+                    responseObject[mentor] = [...new Set(existingResObject[mentor])];
+                }
+                if (deltaBatchDetails.mentorsDeleted.length > 0) {
+                    for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+                        delete responseObject[mentorD];
+                    }
+                }
+            }
+
+
+        }
+    }
+    return responseObject;
+}
+function dataPackager(deltaBatchDetails) {
+    responseObject = {};
+    responseObject['courseId'] = deltaBatchDetails.courseId;
+    responseObject['batchId'] = deltaBatchDetails.batchId;
+    if (deltaBatchDetails.mentorsAdded.length > 0) {
+        if (deltaBatchDetails.mentorsPresent.length > 0) {
+            responseObject[deltaBatchDetails.createdById] = [...new Set(deltaBatchDetails.mentorsAdded.concat(deltaBatchDetails.mentorsPresent))];
+        } else {
+            responseObject[deltaBatchDetails.createdById] = deltaBatchDetails.mentorsAdded;
+        }
+    }
+    if (deltaBatchDetails.mentorsDeleted.length > 0) {
+        for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+            if (responseObject[deltaBatchDetails.createdById].indexOf(mentorD) !== -1) {
+                responseObject[deltaBatchDetails.createdById]
+                    .splice(responseObject[deltaBatchDetails.createdById].indexOf(mentorD), 1);
+            }
+        }
+    }
+    for (mentor of responseObject[deltaBatchDetails.createdById]) {
+        responseObject[mentor] = [];
+        if (mentor === deltaBatchDetails.mentorWhoUpdated) {
+            responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded)];
+            if (deltaBatchDetails.mentorsDeleted.length > 0) {
+                for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+                    if (responseObject[mentor].indexOf(mentorD) !== -1) {
+                        responseObject[mentor]
+                            .splice(responseObject[mentor].indexOf(mentorD), 1);
+                    }
+                    delete responseObject[mentorD];
+                }
+            }
+        }
+    }
+    if (deltaBatchDetails.mentorsDeleted.length > 0) {
+        for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+            delete responseObject[mentorD];
+        }
+    }
+    return responseObject;
+}
+
 
 
