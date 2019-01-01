@@ -4,6 +4,10 @@ const rxjs = require('rxjs')
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 const UUID = require('uuid/v4');
+// const batchUpdateReq = require ('../models/batch-requests').batchUpdateReq;
+// const batchFetchReq = require ('../models/batch-requests').batchFetchReq;
+// const batchUpdateReqKeys = Object.keys(batchUpdateReq);
+// const batchFetchReqKeys = Object.keys(batchFetchReq);
 
 const port = process.env.PORT || 8080;
 var db;
@@ -340,8 +344,9 @@ app.post('/single-session', (req, res) => {
 })
 
 app.post('/updateBatch', (req, res, next) => {
-    const deltaBatchDetails = req.body.request;
-    db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
+    if(req.body.hasOwnProperty('request')){
+        const deltaBatchDetails = req.body.request;
+        db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
         .then(result => {
             if (result === null) {
                 updatedDelta = dataPackager(deltaBatchDetails);
@@ -425,9 +430,29 @@ app.post('/updateBatch', (req, res, next) => {
                 error: 'Find Error' + err
             });
         })
+    }else{
+        res.status(400).json({
+            id: "string",
+            ver: "string",
+            ets: 0,
+            params: {
+                msgid: "string",
+                resmsgid: "string",
+                err: null,
+                err_msg: null,
+                err_detail: null,
+                status: "400 Bad Request"
+            },
+            responseCode: "400",
+            result: {
+                response: "Check JSON document",
+            }
+        });
+    }
 })
 
 app.post('/fetchBatch', (req, res, next) => {
+    if(req.body.hasOwnProperty('request')){
     const deltaBatchDetails = req.body.request;
     db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
         .then(result => {
@@ -476,6 +501,25 @@ app.post('/fetchBatch', (req, res, next) => {
                 error: err
             });
         })
+    }else{
+        res.status(400).json({
+            id: "string",
+            ver: "string",
+            ets: 0,
+            params: {
+                msgid: "string",
+                resmsgid: "string",
+                err: null,
+                err_msg: null,
+                err_detail: null,
+                status: "400 Bad Request"
+            },
+            responseCode: "400",
+            result: {
+                response: "Check JSON document",
+            }
+        });
+    }
 })
 
 function dataPackagerU(deltaBatchDetails, existingResObject) {

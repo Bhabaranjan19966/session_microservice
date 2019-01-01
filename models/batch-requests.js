@@ -9,7 +9,6 @@ const batchUpdateReq = {
 }
 
 const batchFetchReq = {
-    courseId: String,
     batchId: String,
 }
 
