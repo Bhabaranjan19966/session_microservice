@@ -8,6 +8,25 @@ const Validate = require('./validation')
 const port = process.env.PORT || 8080;
 let db;
 
+let responseSample= {
+    id: "string",
+    ver: "string",
+    ets: 0,
+    params: {
+        msgid: "string",
+        resmsgid: "string",
+        err: null,
+        err_msg: null,
+        err_detail: null,
+        status: "string"
+    },
+    responseCode: "string",
+    result: {
+        response: "string",
+        data: ""
+    }
+
+}
 const addUserSession = new rxjs.Subject();
 const updateUserSession = new rxjs.Subject();
 const deleteUserSession = new rxjs.Subject();
@@ -118,9 +137,9 @@ MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
     if (err) { //console.log("-----------------------------", err); 
 }
     db = client.db('test-db');
-    //console.log('connected to data base');
+    console.log('Connected to data base');
     app.listen(port, () => {
-        //console.log("app is running on port :", port);
+        console.log("Server is running on port :", port);
     });
 })
 // MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
@@ -396,7 +415,7 @@ app.post('/single-session', (req, res) => {
     })
 })
 
-app.post('/updateBatch', (req, res, next) => {
+app.post('/update-batch', (req, res, next) => {
     if(Validate.validateUpdateBatch(req.body)){
         const deltaBatchDetails = req.body.request;
         db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
@@ -406,25 +425,10 @@ app.post('/updateBatch', (req, res, next) => {
                 db.collection('batches').insertOne(updatedDelta)
                     .then(
                         result => {
-                            const additionalDetail = {
-                                id: "string",
-                                ver: "string",
-                                ets: 0,
-                                params: {
-                                    msgid: "string",
-                                    resmsgid: "string",
-                                    err: null,
-                                    err_msg: null,
-                                    err_detail: null,
-                                    status: "success"
-                                },
-                                responseCode: "201",
-                                result: {
-                                    response: "Succesfully Posted Addition Batch Details",
-                                    data: result.ops[0]
-                                }
-                            }
-                            res.status(201).json(additionalDetail);
+                            responseSample.responseCode= "201";
+                            responseSample.result.response="Succesfully Posted Addition Batch Details";
+                            responseSample.result.data = result.ops[0];
+                            res.status(201).json(responseSample);
                         })
                     .catch(err => {
                         res.status(500).json({
@@ -436,45 +440,16 @@ app.post('/updateBatch', (req, res, next) => {
                 updatedDelta = dataPackagerU(deltaBatchDetails, result);
                 db.collection('batches').update({ _id: result._id }, updatedDelta)
                     .then(result => {
-                        const additionalDetail = {
-                            id: "string",
-                            ver: "string",
-                            ets: 0,
-                            params: {
-                                msgid: "string",
-                                resmsgid: "string",
-                                err: null,
-                                err_msg: null,
-                                err_detail: null,
-                                status: "success"
-                            },
-                            responseCode: "200",
-                            result: {
-                                response: "Successfully updated existing batch details",
-                                data:updatedDelta
-                            }
-                        }
-                        res.status(200).json(additionalDetail);
+                        responseSample.responseCode= "200";
+                        responseSample.result.response="Successfully updated existing batch details";
+                        responseSample.result.data = updatedDelta;
+                        res.status(200).json(responseSample);
                     })
                     .catch(
                         err => {
-                            res.status(204).json({
-                                id: "string",
-                                ver: "string",
-                                ets: 0,
-                                params: {
-                                    msgid: "string",
-                                    resmsgid: "string",
-                                    err: null,
-                                    err_msg: null,
-                                    err_detail: null,
-                                    status: "204 Not found"
-                                },
-                                responseCode: "204",
-                                result: {
-                                    response: "Batch not found",
-                                }
-                            });
+                            responseSample.responseCode="204";
+                            responseSample.result.response="No additional Batch Details found";
+                            res.status(204).json(responseSample);
                         })
             }
         })
@@ -484,69 +459,26 @@ app.post('/updateBatch', (req, res, next) => {
             });
         })
     }else{
-        res.status(400).json({
-            id: "string",
-            ver: "string",
-            ets: 0,
-            params: {
-                msgid: "string",
-                resmsgid: "string",
-                err: null,
-                err_msg: null,
-                err_detail: null,
-                status: "400 Bad Request"
-            },
-            responseCode: "400",
-            result: {
-                response: "Check JSON document",
-            }
-        });
+        responseSample.responseCode="400";
+        responseSample.result.response="Bad Request, Check JSON document format";
+        res.status(400).json(responseSample);
     }
 })
 
-app.post('/fetchBatch', (req, res, next) => {
+app.post('/fetch-batch', (req, res, next) => {
     if(Validate.validateFetchBatch(req.body)){
     const deltaBatchDetails = req.body.request;
     db.collection('batches').findOne({ 'batchId': deltaBatchDetails.batchId })
         .then(result => {
             if (result !== null) {
-                res.status(200).json({
-                    id: "string",
-                    ver: "string",
-                    ets: 0,
-                    params: {
-                        msgid: "string",
-                        resmsgid: "string",
-                        err: null,
-                        err_msg: null,
-                        err_detail: null,
-                        status: "200 Status Ok"
-                    },
-                    responseCode: "200",
-                    result: {
-                        response: "Found Batch Details",
-                        data: result
-                    }
-
-                })
+                responseSample.responseCode= "200";
+                responseSample.result.response="Found Batch Details";
+                responseSample.result.data = result;
+                res.status(200).json(responseSample);
             }else{
-                res.status(404).json({
-                    id: "string",
-                    ver: "string",
-                    ets: 0,
-                    params: {
-                        msgid: "string",
-                        resmsgid: "string",
-                        err: null,
-                        err_msg: null,
-                        err_detail: null,
-                        status: "404 Not found"
-                    },
-                    responseCode: "404",
-                    result: {
-                        response: "Batch not found",
-                    }
-                })
+                responseSample.responseCode= "404";
+                responseSample.result.response="Batch not found";
+                res.status(404).json(responseSample)
             }
         })
         .catch(err => {
@@ -555,23 +487,9 @@ app.post('/fetchBatch', (req, res, next) => {
             });
         })
     }else{
-        res.status(400).json({
-            id: "string",
-            ver: "string",
-            ets: 0,
-            params: {
-                msgid: "string",
-                resmsgid: "string",
-                err: null,
-                err_msg: null,
-                err_detail: null,
-                status: "400 Bad Request"
-            },
-            responseCode: "400",
-            result: {
-                response: "Check JSON document",
-            }
-        });
+        responseSample.responseCode="400";
+        responseSample.result.response="Bad Request, Check JSON document format";
+        res.status(400).json(responseSample);
     }
 })
 
