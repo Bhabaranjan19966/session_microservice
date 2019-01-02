@@ -315,7 +315,7 @@ describe('testing delete session', () => {
 describe('Test Case for update batch additional details', () => {
     
     before(()=>{
-         path = '/updateBatch';
+         path = '/update-batch';
     })
    
    
@@ -406,7 +406,7 @@ describe('Test Case for update batch additional details', () => {
 describe('Test Case for fetch batch additional details', () => {
     
     before(()=>{
-        path = '/fetchBatch';
+        path = '/fetch-batch';
    })
     
     it('Test 4: If Present', (done) => {
