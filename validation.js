@@ -45,7 +45,7 @@ validateUpdateSession = (userDetails) => {
 }
 
 validateDeleteSession = (userDeatils) => {
-    if (userDeatils.hasOwnProperty.sessionDetails('sessionId')) {
+    if (userDeatils.sessionDetails.hasOwnProperty('sessionId')) {
         return true;
     } else {
         return false;
