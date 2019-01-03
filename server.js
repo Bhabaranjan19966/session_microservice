@@ -153,7 +153,6 @@ MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
 
 // })
 
-
 app.post('/create-session', (req, res) => {
     if (!Validate.validateCreateSession(req.body)) {
         return res.json({
@@ -554,7 +553,14 @@ function dataPackager(deltaBatchDetails) {
         } else {
             responseObject[deltaBatchDetails.createdById] = deltaBatchDetails.mentorsAdded;
         }
+    }else{
+        if (deltaBatchDetails.mentorsPresent.length > 0) {
+            responseObject[deltaBatchDetails.createdById] = [...new Set(deltaBatchDetails.mentorsPresent)];
+        } else {
+            responseObject[deltaBatchDetails.createdById]=[]        
+        }
     }
+
     if (deltaBatchDetails.mentorsDeleted.length > 0) {
         for (const mentorD of deltaBatchDetails.mentorsDeleted) {
             if (responseObject[deltaBatchDetails.createdById].indexOf(mentorD) !== -1) {
@@ -563,21 +569,21 @@ function dataPackager(deltaBatchDetails) {
             }
         }
     }
-    for (mentor of responseObject[deltaBatchDetails.createdById]) {
-        responseObject[mentor] = [];
-        if (mentor === deltaBatchDetails.mentorWhoUpdated) {
-            responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded)];
-            if (deltaBatchDetails.mentorsDeleted.length > 0) {
-                for (const mentorD of deltaBatchDetails.mentorsDeleted) {
-                    if (responseObject[mentor].indexOf(mentorD) !== -1) {
-                        responseObject[mentor]
-                            .splice(responseObject[mentor].indexOf(mentorD), 1);
+        for (mentor of responseObject[deltaBatchDetails.createdById]) {
+            responseObject[mentor] = [];
+            if (mentor === deltaBatchDetails.mentorWhoUpdated) {
+                responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded)];
+                if (deltaBatchDetails.mentorsDeleted.length > 0) {
+                    for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+                        if (responseObject[mentor].indexOf(mentorD) !== -1) {
+                            responseObject[mentor]
+                                .splice(responseObject[mentor].indexOf(mentorD), 1);
+                        }
+                        delete responseObject[mentorD];
                     }
-                    delete responseObject[mentorD];
                 }
             }
         }
-    }
     if (deltaBatchDetails.mentorsDeleted.length > 0) {
         for (const mentorD of deltaBatchDetails.mentorsDeleted) {
             delete responseObject[mentorD];

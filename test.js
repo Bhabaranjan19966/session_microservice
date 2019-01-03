@@ -41,6 +41,7 @@ const testObject_2 = {
     mentorsDeleted :["chorizo123"]
 }
 }
+
 const testObject_4 = {
     request:{
     batchId:"test101",
@@ -49,6 +50,18 @@ const testObject_4 = {
 const testObject_5 = {
     request:{
     batchId:"test105",
+}
+}
+
+const testObject_6 = {
+    request:{
+    courseId:"test125",
+    batchId:"test103",
+    createdById:"creator123",
+    mentorsPresent:["maddy123","pop123","kuku123","chorizo123"],
+    mentorWhoUpdated:"maddy123",
+    mentorsAdded: [],
+    mentorsDeleted :[]
 }
 }
 describe('test cases for create-session ', () => {
@@ -328,7 +341,6 @@ describe('Test Case for update batch additional details', () => {
                 if (err) {
                     //////console.log('Something went wrong', err);
                 } else {
-                    //////console.log(res.body)
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.result.data).to.have.property(testObject_1.request.createdById).with.lengthOf(testObject_1.request.mentorsAdded.length+testObject_1.request.mentorsPresent.length);
                     if(res.body.responseCode === '201'){
@@ -351,7 +363,6 @@ describe('Test Case for update batch additional details', () => {
                 if (err) {
                     //////console.log('Something went wrong', err);
                 } else {
-                    //////console.log(res.body)
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.result.data).to.have.property(testObject_2.request.createdById).with.lengthOf(testObject_2.request.mentorsAdded.length+testObject_2.request.mentorsPresent.length-testObject_2.request.mentorsDeleted.length);
                     if(res.body.responseCode === '201'){
@@ -373,7 +384,6 @@ describe('Test Case for update batch additional details', () => {
                 if (err) {
                     //////console.log('Something went wrong', err);
                 } else {
-                    //////console.log(res.body)
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.result.data).to.have.property(testObject_3.request.createdById).with.lengthOf(testObject_3.request.mentorsAdded.length);
                     if(res.body.responseCode === '201'){
@@ -394,9 +404,26 @@ describe('Test Case for update batch additional details', () => {
                 "invalid": 456
             })
             .end((error, resp, body) => {
-                ////console.log(resp.body, "should err")
                 chai.expect(resp.body).to.have.property('responseCode');
                 chai.expect(resp.body.responseCode).to.equal('400');
+                done();
+            })
+            
+    })
+    it('Test 6: When no mentor is added or deleted', (done) => {
+        chai
+            .request(host)
+            .post(path)
+            .send(testObject_6)
+            .end((error, resp, body) => {
+                chai.expect(resp.body).to.have.property('responseCode');
+                chai.expect(resp.body.result.data).to.have.property(testObject_6.request.createdById).with.lengthOf(testObject_6.request.mentorsPresent.length);
+                if(resp.body.responseCode === '201'){
+                    chai.expect(Object.keys(resp.body.result.data)).with.lengthOf(testObject_6.request.mentorsPresent.length+4);
+                }
+                if(resp.body.responseCode === '200'){
+                    chai.expect(Object.keys(resp.body.result.data)).with.lengthOf(testObject_6.request.mentorsPresent.length+3);
+                }
                 done();
             })
             
@@ -416,7 +443,6 @@ describe('Test Case for fetch batch additional details', () => {
             .send(testObject_4)
             .end((err, res, body) => {
                 if (err) {
-                    ////console.log('Something went wrong', err);
                 } else {
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.responseCode).to.equal('200');
@@ -424,14 +450,13 @@ describe('Test Case for fetch batch additional details', () => {
                 }
             })
     })
-    it('Test 4: If Absent', (done) => {
+    it('Test 5: If Absent', (done) => {
         chai
             .request(host)
             .post(path)
             .send(testObject_5)
             .end((err, res, body) => {
                 if (err) {
-                    ////console.log('Something went wrong', err);
                 } else {
                     chai.expect(res.body).to.have.property('responseCode');
                     chai.expect(res.body.responseCode).to.equal('404');
@@ -447,7 +472,6 @@ describe('Test Case for fetch batch additional details', () => {
                 "invalid": 456
             })
             .end((error, resp, body) => {
-                ////console.log(resp.body, "should err")
                 chai.expect(resp.body).to.have.property('responseCode');
                 chai.expect(resp.body.responseCode).to.equal('400');
                 done();
