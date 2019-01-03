@@ -133,25 +133,25 @@ deleteUserSession.subscribe(
 
     }
 )
-MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
-    if (err) { //console.log("-----------------------------", err); 
-}
-    db = client.db('test-db');
-    console.log('Connected to data base');
-    app.listen(port, () => {
-        console.log("Server is running on port :", port);
-    });
-})
-// MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
+// MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
 //     if (err) { //console.log("-----------------------------", err); 
 // }
 //     db = client.db('test-db');
-//     //console.log('connected to data base');
+//     console.log('Connected to data base');
 //     app.listen(port, () => {
-//         //console.log("app is running on port :", port);
+//         console.log("Server is running on port :", port);
 //     });
-
 // })
+MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
+    if (err) { //console.log("-----------------------------", err); 
+}
+    db = client.db('test-db');
+    //console.log('connected to data base');
+    app.listen(port, () => {
+        //console.log("app is running on port :", port);
+    });
+
+})
 
 
 app.post('/create-session', (req, res) => {
@@ -554,7 +554,14 @@ function dataPackager(deltaBatchDetails) {
         } else {
             responseObject[deltaBatchDetails.createdById] = deltaBatchDetails.mentorsAdded;
         }
+    }else{
+        if (deltaBatchDetails.mentorsPresent.length > 0) {
+            responseObject[deltaBatchDetails.createdById] = [...new Set(deltaBatchDetails.mentorsPresent)];
+        } else {
+            responseObject[deltaBatchDetails.createdById]=[]        
+        }
     }
+
     if (deltaBatchDetails.mentorsDeleted.length > 0) {
         for (const mentorD of deltaBatchDetails.mentorsDeleted) {
             if (responseObject[deltaBatchDetails.createdById].indexOf(mentorD) !== -1) {
@@ -563,21 +570,21 @@ function dataPackager(deltaBatchDetails) {
             }
         }
     }
-    for (mentor of responseObject[deltaBatchDetails.createdById]) {
-        responseObject[mentor] = [];
-        if (mentor === deltaBatchDetails.mentorWhoUpdated) {
-            responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded)];
-            if (deltaBatchDetails.mentorsDeleted.length > 0) {
-                for (const mentorD of deltaBatchDetails.mentorsDeleted) {
-                    if (responseObject[mentor].indexOf(mentorD) !== -1) {
-                        responseObject[mentor]
-                            .splice(responseObject[mentor].indexOf(mentorD), 1);
+        for (mentor of responseObject[deltaBatchDetails.createdById]) {
+            responseObject[mentor] = [];
+            if (mentor === deltaBatchDetails.mentorWhoUpdated) {
+                responseObject[mentor] = [...new Set(deltaBatchDetails.mentorsAdded)];
+                if (deltaBatchDetails.mentorsDeleted.length > 0) {
+                    for (const mentorD of deltaBatchDetails.mentorsDeleted) {
+                        if (responseObject[mentor].indexOf(mentorD) !== -1) {
+                            responseObject[mentor]
+                                .splice(responseObject[mentor].indexOf(mentorD), 1);
+                        }
+                        delete responseObject[mentorD];
                     }
-                    delete responseObject[mentorD];
                 }
             }
         }
-    }
     if (deltaBatchDetails.mentorsDeleted.length > 0) {
         for (const mentorD of deltaBatchDetails.mentorsDeleted) {
             delete responseObject[mentorD];
