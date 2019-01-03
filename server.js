@@ -133,26 +133,25 @@ deleteUserSession.subscribe(
 
     }
 )
-// MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
-//     if (err) { //console.log("-----------------------------", err); 
-// }
-//     db = client.db('test-db');
-//     console.log('Connected to data base');
-//     app.listen(port, () => {
-//         console.log("Server is running on port :", port);
-//     });
-// })
-MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
+MongoClient.connect('mongodb://mongodb:27017/', (err, client) => {
     if (err) { //console.log("-----------------------------", err); 
 }
     db = client.db('test-db');
-    //console.log('connected to data base');
+    console.log('Connected to data base');
     app.listen(port, () => {
-        //console.log("app is running on port :", port);
+        console.log("Server is running on port :", port);
     });
-
 })
+// MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, }, (err, client) => {
+//     if (err) { //console.log("-----------------------------", err); 
+// }
+//     db = client.db('test-db');
+//     //console.log('connected to data base');
+//     app.listen(port, () => {
+//         //console.log("app is running on port :", port);
+//     });
 
+// })
 
 app.post('/create-session', (req, res) => {
     if (!Validate.validateCreateSession(req.body)) {
